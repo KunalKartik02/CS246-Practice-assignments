@@ -1,167 +1,138 @@
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <string>
-#include <map>
-#include <bitset>
-#include <cmath>
-#define ll int long long
-#define makearr int arr[n]; for(int i=0;i<n;i++) cin>>arr[i];
-#define For(i,j,n) for(int i=j;i<n;i++)
-#define pb push_back
-#define mp make_pair
-#define pi pair<int,int>
-#define pll pair<ll,ll>
-#define ri(n) int n; cin>>n;
-#define rll(n) ll n; cin>>n;
-#define di(n) int n;
-#define dll(n) ll n;
+#include <bits/stdc++.h>
+
 using namespace std;
-class BPTNode{
-    public:
-    vector<int> key;
-    vector<BPTNode*> ptr;
-    bool isleaf;
-    BPTNode* left;
-    BPTNode* right;
-    BPTNode* par;
-    BPTNode(){
-        key={};
-        ptr={};
-        isleaf=false;
-        left=NULL;
-        right=NULL;
-        par=NULL;
+
+int d,t;
+int leaf_count=0,index_count=0;
+struct block{
+    bool leaf;                // whether this is a leaf
+    block * parent;           // parent pointer
+    vector<int> data;         // stores the data in the block
+    vector<block*> children;  // stores the children pointers, and is always one size greater
+    explicit block(bool if_leaf){
+        parent= nullptr;
+        if(!if_leaf){
+            leaf= false;
+        }else{
+            leaf= true;
+        }
     }
 };
-void BPTSplit(BPTNode* &n, int d, BPTNode* &root, int t, int* dn, int* in){
-    if(n->isleaf){
-        int sepa=(n->key)[d];(*dn)++;
-        BPTNode* a=new BPTNode();BPTNode* b=new BPTNode();
-        a->isleaf=true;b->isleaf=true;
-        For(i,0,d) (a->key).pb((n->key)[i]);
-        For(i,d,2*d+1) (b->key).pb((n->key)[i]);
-        if(n->par==NULL){
-            BPTNode* temp=new BPTNode();(*in)++;
-            root=temp;
-            (root->key).pb(sepa);
-            a->par=root;b->par=root;
-            (root->ptr).pb(a);(root->ptr).pb(b);
-        }
-        else{
-            BPTNode* p=n->par;
-            int idx=-1;
-            For(i,0,(p->ptr).size()){
-                if((p->ptr)[i]==n){
-                    idx=i;break;
-                }
+int main() {
+    cin>>d>>t;
+    block * root= nullptr;
+    while (true){
+        int op;cin>>op;
+        if(op==1){
+            if(root== nullptr){      // if inserting for the first time
+                root=new block (true);
+                leaf_count++;
             }
-            vector<BPTNode*> temp;
-            For(i,0,idx){
-                temp.pb((p->ptr)[i]);
-            }
-            temp.pb(a);temp.pb(b);
-            For(i,idx+1,(p->ptr).size()){
-                temp.pb((p->ptr)[i]);
-            }
-            p->ptr=temp;
-            (p->key).pb(sepa);
-            a->par=p;b->par=p;
-            sort((p->key).begin(),(p->key).end());
-            if((p->key).size()>2*t+1) BPTSplit(p,d,root,t,dn,in);
-        }
-    }
-    else{
-        BPTNode* a=new BPTNode();BPTNode* b=new BPTNode();(*in)++;
-        int y=(n->key)[t];
-        For(i,0,t) (a->key).pb((n->key)[i]);
-        For(i,t+1,2*t+2) (b->key).pb((n->key)[i]);
-        For(i,0,t+1){
-            (a->ptr).pb((n->ptr)[i]);
-            ((n->ptr)[i])->par=a;
-        }
-        For(i,t+1,2*t+3){
-            (b->ptr).pb((n->ptr)[i]);
-            ((n->ptr)[i])->par=b;
-        }
-        if(n->par==NULL){
-            BPTNode* temp=new BPTNode();(*in)++;
-			root=temp;
-            (root->key).pb(y);
-            a->par=root;b->par=root;(root->ptr).pb(a);(root->ptr).pb(b);
-        }
-        else{
-            BPTNode* p=n->par;
-            int idx=-1;
-            For(i,0,(p->ptr).size()){
-                if((p->ptr)[i]==n){
-                    idx=i;break;
-                }
-            }
-            vector<BPTNode*> temp;
-            For(i,0,idx){
-                temp.pb((p->ptr)[i]);
-            }
-            temp.pb(a);temp.pb(b);
-            For(i,idx+1,(p->ptr).size()){
-                temp.pb((p->ptr)[i]);
-            }
-            (p->ptr)=temp;
-            a->par=p;b->par=p;
-            (p->key).pb(y);sort((p->key).begin(),(p->key).end());
-            if((p->key).size()>2*t+1) BPTSplit(p,d,root,t,dn,in);
-        }
-    }
-    return;
-}
-void BPTinsert(BPTNode* &trav, BPTNode* &root, int val, int d, int t, int* dn, int* in){
-    if(!trav->isleaf){
-        vector<int>::iterator it=lower_bound((trav->key).begin(),(trav->key).end(),val);
-        int plac=it-(trav->key).begin();
-        BPTinsert((trav->ptr)[plac],root,val,d,t,dn,in);
-    }
-    else{
-        if((trav->key).size()==2*d){
-            (trav->key).pb(val);
-            sort((trav->key).begin(),(trav->key).end());
-            BPTSplit((trav),d,root,t,dn,in);
-        }
-        else{
-            (trav->key).pb(val);
-            sort((trav->key).begin(),(trav->key).end());
-        }
-    }
-    return;
-}
-int main(){
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-    ri(d);ri(t);
-    int x;
-    BPTNode* root=new BPTNode();
-    root->isleaf=true;
-    int dn=1,in=0;
-    int flag=0;
-    while(cin>>x){
-        if(x==1){
-            flag=1;
             int val;cin>>val;
-            BPTinsert(root,root,val,d,t,&dn,&in);
-        }
-        else if(x==2){
-            if(!flag){
-                cout<<0<<" "<<0<<"\n";
+            block * now=root;      // now is the pointer which denotes the node i am currently examining
+            while (now->leaf==0){  // in this while loop we go to the appropriate children till we reach leaf
+                if(now->data[0]>val){// in case we need to go to the leftmost child
+                    now=now->children[0];
+                }else if(val>=now->data.back()){// in case we need to go to the rightmost child
+                    now=now->children.back();
+                }else{// in case any middle node
+                    for(int i=0;i<now->data.size()-1;i++){
+                        if(now->data[i]<=val && now->data[i+1]>val){
+                            now=now->children[i+1];
+                            break;
+                        }
+                    }
+                }
             }
-            else{
-                cout<<in<<" "<<dn<<" ";
-                For(i,0,(root->key).size()){
-                    cout<<(root->key)[i]<<" ";
-                }cout<<"\n";
+            // in this portion the node we are examining is leaf and we are inserting val at appropriate place
+            deque<int> buff;
+            while (!now->data.empty() && now->data.back()>val){
+                buff.push_back(now->data.back());
+                now->data.pop_back();
             }
+            now->data.push_back(val);
+            while (buff.size()>0){
+                now->data.push_back(buff.back());
+                buff.pop_back();
+            }
+            if(now->data.size()<=2*d){   // if after insertion there is no overflow of leaf
+                continue;
+            }else{
+                block * sibling =new block(1); // we define a sibling of leaf
+                leaf_count++;
+                // we remove last d+1 elements from leaf to sibling and reverse to keep sibling in sorted order
+                while (now->data.size()>d){
+                    sibling->data.push_back(now->data.back());
+                    now->data.pop_back();
+                }
+                reverse(sibling->data.begin(),sibling->data.end());
+                sibling->parent=now->parent;
+                int transfer=sibling->data[0];
+                bool flg= false;
+                while (now->parent != nullptr){ // we are pushing overflow towards root, if it is fixed in mid then well and good else we create a new root
+                    deque<block*> buff; // buffer for children pointer
+                    deque<int> buff2;   // buffer for data
+                    block * curr=now->parent;
+                    // in this part we are inserting sibling inside the children list of parent of now, we do it like this first put everything after now in buffer the fill sibling just after now then again fill buffer
+                    while (curr->children.back()!=now){
+                        buff.push_back(curr->children.back());
+                        buff2.push_back(curr->data.back());
+                        curr->children.pop_back();
+                        curr->data.pop_back();
+                    }
+                    curr->children.push_back(sibling);
+                    curr->data.push_back(transfer);
+                    while (buff.size()>0){
+                        curr->children.push_back(buff.back());
+                        curr->data.push_back(buff2.back());
+                        buff.pop_back();
+                        buff2.pop_back();
+                    }
+                    if(curr->children.size()>2*t+2){ // if my parent size after sibling is greater than 2t+1 then split my parent and give them till "now" and "sibling"
+                        index_count++;
+                        sibling = new block(0);
+                        sibling->parent=curr->parent;
+                        
+                        for(int i=0;i<t+1;i++){ // puting last t+1 data
+                            sibling->data.push_back(curr->data.back());
+                            curr->data.pop_back();
+                        }
+                        transfer=curr->data.back();// transfer t+1 th data one more level up
+                        curr->data.pop_back();
+                        for(int i=0;i<t+2;i++){ // last t+2 children pointer in sibling
+                            sibling->children.push_back(curr->children.back());
+                            curr->children.back()->parent=sibling;
+                            curr->children.pop_back();
+                        }
+                        // reverse to maintain sorted order
+                        reverse(sibling->children.begin(),sibling->children.end());
+                        reverse(sibling->data.begin(),sibling->data.end());
+                        now=curr;
+                    }else{
+                        flg= true;
+                        break;
+                    }
+                }
+                if(!flg){ // if we got till root and still splitted , then we create a new root
+                    block * newrt =new block(0);
+                    index_count++;
+                    newrt->children.push_back(now);
+                    newrt->children.push_back(sibling);
+                    newrt->data.push_back(transfer);
+                    now->parent=newrt;
+                    sibling->parent=newrt;
+                    root=newrt;
+                }
+            }
+        }else if(op==2){
+            cout<<index_count<<" "<<leaf_count<<endl;
+            for(int i=0;i<root->data.size();i++){
+                cout<<root->data[i]<<" ";
+            }
+            cout<<endl;
+        }else{
+            break;
         }
-        else break;
     }
     return 0;
 }
-
-   
